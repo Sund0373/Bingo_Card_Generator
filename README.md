@@ -6,7 +6,7 @@ PDF — two cards per page, landscape.
 - Upload a term list as Excel, pick how many cards, generate, print.
 - Terms are forced to **ALL CAPS** and must be unique.
 - Optional free space in the centre square.
-- Output as **PDF** (print-ready), **Word**, or **Excel**.
+- Output as a print-ready **PDF**, or **Excel** if you want the raw grids.
 
 ---
 
@@ -65,7 +65,6 @@ with no terminal at all.
 | `pip install` blocked by proxy | `pip install --proxy http://YOUR_PROXY:PORT -r requirements.txt` |
 | Port 5000 already in use | `python app.py --port 8000` |
 | VS Code says packages are missing | `Ctrl+Shift+P` → *Python: Select Interpreter* → pick the `.venv` entry. |
-| Word output unavailable | Optional. PDF and Excel still work; `pip install python-docx` to enable it. |
 
 No admin rights are needed — everything installs into the project's own `.venv`.
 
@@ -122,15 +121,15 @@ python generate_bingo.py --terms templates/terms_template.xlsx --mode column --n
 | `--num-cards` | *required* | How many cards (1 or more) |
 | `--free-space` | off | Free space in the centre square |
 | `--mode` | *required* | `column` (reads By Column) or `random` (reads Flat List) |
-| `--header` | template's | Exactly 5 characters, e.g. `CHASE` |
-| `--format` | `pdf` | Any of `pdf`, `docx`, `xlsx` |
+| `--header` | `BINGO` | Exactly 5 characters, e.g. `CHASE` |
+| `--format` | `pdf` | `pdf`, `xlsx`, or both |
 | `--output` | `output/bingo_cards.<ext>` | Output path (single format only) |
 | `--seed` | random | Reproduces an identical batch |
 
 ```bash
-# Word and Excel as well, with a fixed seed
+# Excel as well, with a fixed seed
 python generate_bingo.py --terms my_terms.xlsx --mode random --num-cards 40 --free-space \
-    --header CHASE --format pdf docx xlsx --seed 7
+    --header CHASE --format pdf xlsx --seed 7
 ```
 
 ---
@@ -157,10 +156,6 @@ All of it derives from the page centre line in `pdf_output.py`, so the two cards
 symmetric about the vertical cut if you retune `CELL`, `CUT_CLEARANCE`, or
 `BOTTOM_CLEARANCE`. Pass `cut_guides=False` to `write_pdf_cards()` to omit the guides.
 
-> **Word output uses different geometry.** `docx_output.py` clones
-> `templates/Bingo Layout.docx` as-is (1 in margins, 0.8 in cells, two text columns),
-> so `.docx` cards are the original smaller size. The PDF is the print-ready format.
-
 ## Project files
 
 | File | Role |
@@ -169,9 +164,8 @@ symmetric about the vertical cut if you retune `CELL`, `CUT_CLEARANCE`, or
 | `app.py` | Web UI |
 | `generate_bingo.py` | Term loading, validation, card drawing, CLI |
 | `pdf_output.py` | PDF renderer |
-| `docx_output.py` | Word renderer (clones the template table) |
 | `make_template.py` | Writes the blank terms workbook |
-| `templates/` | Source assets — committed |
+| `templates/` | Blank terms workbook — committed |
 | `output/` | Generated files — git-ignored |
 
 ## Notes
@@ -181,8 +175,6 @@ symmetric about the vertical cut if you retune `CELL`, `CUT_CLEARANCE`, or
 - Works on Windows, macOS and Linux. The PDF uses Arial where it is installed and
   falls back to Helvetica, which is metrically identical, so output looks the same
   either way. See `FONT_CANDIDATES` in `pdf_output.py` to add a font path.
-- Word output needs `python-docx`. It is optional — without it, PDF and Excel still
-  work and the UI hides the Word option.
 - Generated files under `output/` are ignored by git. Web runs land in
   `output/_web/` and are swept after 6 hours.
 
@@ -192,4 +184,4 @@ symmetric about the vertical cut if you retune `CELL`, `CUT_CLEARANCE`, or
 warranty.
 
 Dependency licenses are all permissive and compatible: Flask (BSD-3-Clause),
-openpyxl (MIT), reportlab (BSD-3-Clause), python-docx (MIT).
+openpyxl (MIT), reportlab (BSD-3-Clause).

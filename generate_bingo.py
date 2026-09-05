@@ -21,9 +21,6 @@ from openpyxl.utils import get_column_letter
 
 from pdf_output import write_pdf_cards
 
-# docx_output is imported lazily: python-docx is optional, and PDF/Excel output
-# should keep working on machines where it is not installed.
-
 COLUMNS = ["B", "I", "N", "G", "O"]
 TERMS_PER_COLUMN = 15
 FREE_SPACE_LABEL = "FREE SPACE"
@@ -237,7 +234,6 @@ def positive_int(value: str) -> int:
 
 
 def parse_args() -> argparse.Namespace:
-    here = Path(__file__).parent
     parser = argparse.ArgumentParser(description="Generate random unique 5x5 bingo cards.")
     parser.add_argument("--terms", required=True, type=Path, help="Path to filled-in terms .xlsx")
     parser.add_argument(
@@ -254,27 +250,21 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=["pdf", "docx", "xlsx"],
+        choices=["pdf", "xlsx"],
         default="pdf",
         nargs="+",
         help="Output format(s) (default: pdf, print-ready two cards per page)",
     )
     parser.add_argument(
-        "--template",
-        type=Path,
-        default=here / "templates" / "Bingo Layout.docx",
-        help="Word layout template (default: templates/Bingo Layout.docx)",
-    )
-    parser.add_argument(
         "--header",
-        default=None,
-        help="Override the 5 header letters, e.g. CHASE (default: keep the template's)",
+        default="BINGO",
+        help="The 5 header letters, e.g. CHASE (default: BINGO)",
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=None,
-        help="Output file path (default: output/bingo_cards.docx or .xlsx)",
+        help="Output file path (default: output/bingo_cards.pdf or .xlsx)",
     )
     parser.add_argument("--seed", type=int, default=None, help="Optional random seed for reproducibility")
 
@@ -304,19 +294,7 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         if fmt == "pdf":
-            write_pdf_cards(cards, path, args.free_space, FREE_SPACE_LABEL, args.header or "BINGO")
-        elif fmt == "docx":
-            try:
-                from docx_output import write_docx_cards
-            except ImportError:
-                raise SystemExit(
-                    "Word output needs python-docx. Install it with:\n"
-                    "    pip install python-docx\n"
-                    "Or drop 'docx' from --format."
-                )
-            write_docx_cards(
-                cards, args.template, path, args.free_space, FREE_SPACE_LABEL, args.header
-            )
+            write_pdf_cards(cards, path, args.free_space, FREE_SPACE_LABEL, args.header)
         else:
             write_cards(cards, path)
 

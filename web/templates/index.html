@@ -88,11 +88,6 @@
             <input type="checkbox" name="formats" value="pdf" {{ 'checked' if 'pdf' in form.formats }}>
             <span>PDF <em>print-ready</em></span>
           </label>
-          <label class="check {{ 'disabled' if not docx_ok }}">
-            <input type="checkbox" name="formats" value="docx"
-                   {{ 'checked' if 'docx' in form.formats }} {{ 'disabled' if not docx_ok }}>
-            <span>Word <em>{{ 'editable' if docx_ok else 'needs python-docx' }}</em></span>
-          </label>
           <label class="check">
             <input type="checkbox" name="formats" value="xlsx" {{ 'checked' if 'xlsx' in form.formats }}>
             <span>Excel <em>one sheet per card</em></span>

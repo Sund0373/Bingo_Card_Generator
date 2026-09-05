@@ -6,7 +6,7 @@ Local web UI for the bingo card generator.
     python app.py --no-browser    ->  do not open a browser window
 
 Flask's template folder is pointed at web/ because the project's own templates/
-folder holds the Excel and Word source assets.
+folder holds the Excel term template.
 """
 
 import argparse
@@ -41,7 +41,6 @@ from pdf_output import write_pdf_cards
 
 BASE = Path(__file__).parent
 RUNS = BASE / "output" / "_web"
-DOCX_TEMPLATE = BASE / "templates" / "Bingo Layout.docx"
 TERMS_TEMPLATE = BASE / "templates" / "terms_template.xlsx"
 
 MAX_CARDS = 500
@@ -50,15 +49,6 @@ RUN_TTL_SECONDS = 6 * 60 * 60
 
 app = Flask(__name__, template_folder="web/templates", static_folder="web/static")
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8 MB upload ceiling
-
-
-def _docx_available() -> bool:
-    """python-docx is optional; Word output is hidden when it is missing."""
-    try:
-        import docx  # noqa: F401
-    except ImportError:
-        return False
-    return True
 
 
 def _sweep_old_runs() -> None:
@@ -92,9 +82,7 @@ def _form_defaults() -> dict:
 
 def _page(**kwargs):
     kwargs.setdefault("form", _form_defaults())
-    return render_template(
-        "index.html", max_cards=MAX_CARDS, docx_ok=_docx_available(), **kwargs
-    )
+    return render_template("index.html", max_cards=MAX_CARDS, **kwargs)
 
 
 @app.route("/", methods=["GET"])
@@ -153,12 +141,6 @@ def generate():
         except ValueError:
             return fail("Seed must be a whole number, or left blank.")
 
-    if "docx" in form["formats"]:
-        if not _docx_available():
-            return fail("Word output needs python-docx. Install it with: pip install python-docx")
-        if not DOCX_TEMPLATE.exists():
-            return fail(f"Word template missing: {DOCX_TEMPLATE.name}")
-
     token = uuid.uuid4().hex
     folder = RUNS / token
     folder.mkdir(parents=True, exist_ok=True)
@@ -178,24 +160,13 @@ def generate():
 
         header = form["header"]
         files = []
-        for fmt in ("pdf", "docx", "xlsx"):
+        for fmt in ("pdf", "xlsx"):
             if fmt not in form["formats"]:
                 continue
             out = folder / f"bingo_cards.{fmt}"
             if fmt == "pdf":
                 write_pdf_cards(
                     cards, out, form["free_space"], FREE_SPACE_LABEL, header or "BINGO"
-                )
-            elif fmt == "docx":
-                from docx_output import write_docx_cards
-
-                write_docx_cards(
-                    cards,
-                    DOCX_TEMPLATE,
-                    out,
-                    form["free_space"],
-                    FREE_SPACE_LABEL,
-                    header or None,
                 )
             else:
                 write_xlsx_cards(cards, out)
