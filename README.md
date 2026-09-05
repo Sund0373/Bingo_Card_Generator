@@ -15,7 +15,7 @@ PDF — two cards per page, landscape.
 Needs **git**, **Python 3.10+**, and **Node 16+**.
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Sund0373/Bingo_Card_Generator.git
 cd Bingo_Card_Generator
 npm run dev
 ```
