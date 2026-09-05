@@ -49,13 +49,47 @@ FREE_PT = 16
 MIN_PT = 8  # floor when shrinking a long term to fit its cell
 CELL_PAD = 4  # points of horizontal breathing room inside a cell
 
+# Arial lives in a different place on every OS, and may not be installed at all.
+# Each entry is a (regular, bold) pair; the first pair where both files exist wins.
+FONT_CANDIDATES = [
+    # Windows
+    ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
+    # macOS
+    (
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ),
+    ("/Library/Fonts/Arial.ttf", "/Library/Fonts/Arial Bold.ttf"),
+    # Linux - Liberation Sans and DejaVu are metric-compatible stand-ins
+    (
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    ),
+    (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ),
+]
+
 
 def _register_fonts() -> None:
+    """Registers Arial if it can be found, otherwise falls back to reportlab's
+    built-in Helvetica, which is metrically compatible and always available."""
+    global FONT, FONT_BOLD
+
     if FONT in pdfmetrics.getRegisteredFontNames():
         return
-    fonts_dir = Path("C:/Windows/Fonts")
-    pdfmetrics.registerFont(TTFont(FONT, fonts_dir / "arial.ttf"))
-    pdfmetrics.registerFont(TTFont(FONT_BOLD, fonts_dir / "arialbd.ttf"))
+
+    for regular, bold in FONT_CANDIDATES:
+        if Path(regular).is_file() and Path(bold).is_file():
+            try:
+                pdfmetrics.registerFont(TTFont(FONT, regular))
+                pdfmetrics.registerFont(TTFont(FONT_BOLD, bold))
+                return
+            except Exception:
+                continue  # unreadable or unsupported file, try the next candidate
+
+    FONT, FONT_BOLD = "Helvetica", "Helvetica-Bold"
 
 
 def _wrap(text: str, font: str, size: float, max_width: float) -> list[str]:

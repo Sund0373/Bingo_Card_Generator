@@ -178,6 +178,9 @@ symmetric about the vertical cut if you retune `CELL`, `CUT_CLEARANCE`, or
 
 - Runs on Flask's development server bound to `127.0.0.1`. That is fine for local
   use; putting it on a network would need a production WSGI server and auth.
+- Works on Windows, macOS and Linux. The PDF uses Arial where it is installed and
+  falls back to Helvetica, which is metrically identical, so output looks the same
+  either way. See `FONT_CANDIDATES` in `pdf_output.py` to add a font path.
 - Word output needs `python-docx`. It is optional — without it, PDF and Excel still
   work and the UI hides the Word option.
 - Generated files under `output/` are ignored by git. Web runs land in
