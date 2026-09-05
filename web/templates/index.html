@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bingo Card Generator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1>Bingo Card Generator</h1>
+  <p>Upload a term list, generate unique cards, download print-ready output.</p>
+</header>
+
+<main>
+  {% if error %}
+  <div class="alert" role="alert">
+    <strong>Could not generate</strong>
+    <p>{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('generate') }}" enctype="multipart/form-data">
+    <section class="panel">
+      <h2>1 &middot; Terms</h2>
+      <div class="field">
+        <label for="terms">Terms workbook (.xlsx)</label>
+        <input type="file" id="terms" name="terms" accept=".xlsx" required>
+        <p class="hint">
+          Fill in <em>one</em> sheet: <strong>By Column</strong> (15 terms under each letter)
+          or <strong>Flat List</strong> (75 terms). All terms must be unique.
+          <a href="{{ url_for('terms_template') }}">Download blank template</a>
+        </p>
+      </div>
+
+      <div class="field">
+        <label for="mode">Draw style</label>
+        <select id="mode" name="mode" required>
+          <option value="column" {{ 'selected' if form.mode == 'column' }}>Column &mdash; 5 from each column's 15</option>
+          <option value="random" {{ 'selected' if form.mode == 'random' }}>Random &mdash; 25 from all 75</option>
+        </select>
+        <p class="hint">
+          <strong>Column</strong> reads the <em>By Column</em> sheet and keeps each term in
+          its assigned letter. <strong>Random</strong> reads the <em>Flat List</em> sheet and
+          draws the whole card from all 75, redrawn for every card.
+          Filling in both sheets is fine &mdash; this choice decides which one is used.
+        </p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2 &middot; Cards</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="num_cards">Number of cards</label>
+          <input type="number" id="num_cards" name="num_cards" min="1" max="{{ max_cards }}"
+                 value="{{ form.num_cards }}" required>
+          <p class="hint">1 to {{ max_cards }}. Two cards per page.</p>
+        </div>
+
+        <div class="field">
+          <label for="header">Header letters</label>
+          <input type="text" id="header" name="header" maxlength="5" value="{{ form.header }}"
+                 placeholder="CHASE">
+          <p class="hint">Exactly 5 characters.</p>
+        </div>
+
+        <div class="field">
+          <label for="seed">Seed <span class="optional">optional</span></label>
+          <input type="text" id="seed" name="seed" value="{{ form.seed }}" placeholder="blank = random">
+          <p class="hint">Same seed reproduces the same batch.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="check">
+          <input type="checkbox" name="free_space" {{ 'checked' if form.free_space }}>
+          <span>Free space in the centre square</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3 &middot; Output</h2>
+      <div class="field">
+        <div class="checkrow">
+          <label class="check">
+            <input type="checkbox" name="formats" value="pdf" {{ 'checked' if 'pdf' in form.formats }}>
+            <span>PDF <em>print-ready</em></span>
+          </label>
+          <label class="check {{ 'disabled' if not docx_ok }}">
+            <input type="checkbox" name="formats" value="docx"
+                   {{ 'checked' if 'docx' in form.formats }} {{ 'disabled' if not docx_ok }}>
+            <span>Word <em>{{ 'editable' if docx_ok else 'needs python-docx' }}</em></span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="formats" value="xlsx" {{ 'checked' if 'xlsx' in form.formats }}>
+            <span>Excel <em>one sheet per card</em></span>
+          </label>
+        </div>
+      </div>
+      <button type="submit">Generate cards</button>
+    </section>
+  </form>
+
+  {% if result %}
+  <section class="panel result">
+    <h2>Result</h2>
+    <ul class="stats">
+      <li><strong>{{ result.cards }}</strong> unique cards</li>
+      {% if result.pages %}<li><strong>{{ result.pages }}</strong> pages</li>{% endif %}
+      <li>draw style <strong>{{ result.mode }}</strong></li>
+    </ul>
+
+    <div class="downloads">
+      {% for f in result.files %}
+        <a class="dl" href="{{ f.url }}">Download {{ f.fmt|upper }} <span>{{ f.size_kb }} KB</span></a>
+      {% endfor %}
+    </div>
+
+    {% if result.pdf_url %}
+    <h3>Preview <span class="optional">&mdash; print directly from this viewer</span></h3>
+    <iframe class="pdfview" src="{{ result.pdf_url }}" title="Bingo cards preview"></iframe>
+    <p class="hint">
+      Not showing? <a href="{{ result.pdf_url }}" target="_blank" rel="noopener">Open the PDF in a new tab</a>.
+    </p>
+    {% endif %}
+  </section>
+  {% endif %}
+</main>
+</body>
+</html>

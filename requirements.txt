@@ -1,0 +1,8 @@
+# Core - required for PDF and Excel output and the web UI
+Flask>=3.0
+openpyxl>=3.1
+reportlab>=4.0
+
+# Optional - only needed for Word (.docx) output.
+# Safe to remove this line; the UI hides the Word option when it is absent.
+python-docx>=1.1

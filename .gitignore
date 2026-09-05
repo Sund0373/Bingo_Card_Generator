@@ -1,0 +1,28 @@
+# Generated cards and web run folders - never commit these
+output/*
+!output/.gitkeep
+
+# Your own filled-in term lists - keep them local, do not publish
+my_terms.xlsx
+*_terms_local.xlsx
+
+# Node
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Office lock files (created when a template is open in Word/Excel)
+~$*
